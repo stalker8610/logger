@@ -1,0 +1,12 @@
+{
+  "name": "@stalker8610/logger",
+  "version": "1.0.1",
+  "description": "simple logger into txt-file",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Voronin Anton <stalker8610@gmail.com>",
+  "license": "ISC"
+}
