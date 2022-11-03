@@ -1,7 +1,5 @@
 const fs = require('fs');
-const { resolve } = require('path');
 const util = require('util');
-const { threadId } = require('worker_threads');
 
 const loggingModes = {
     DEBUG_MODE: 0,
