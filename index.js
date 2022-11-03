@@ -1,19 +1,46 @@
 const fs = require('fs');
+const { resolve } = require('path');
 const util = require('util');
+const { threadId } = require('worker_threads');
+
+const loggingModes = {
+    DEBUG_MODE: 0,
+    STANDARD_MODE: 1
+}
+
+const messagesTypes = {
+    INFO: 0,
+    IMPORTANT: 1,
+    ERROR: 2
+}
 
 class Logger {
 
-    constructor(basicPath, maxLogSize = 0) {
+    constructor(basicPath, mode = loggingModes.STANDARD_MODE, maxLogSize = 0) {
         this.basicPath = basicPath;
         this.path = basicPath;
         this.maxLogSize = maxLogSize;
+        this.mode = mode;
+        this.messages = [];
+        this.pending = false;
+
+        this.timer = setInterval(() => {
+            this.writeDataToFileAsync()
+        }, 1000);
     }
 
-    log(data) {
+    async writeDataToFileAsync() {
+
+        if (this.pending) return;
 
         const openNewWriteStream = () => {
-            this.path = this.basicPath.replace(/\.log/, '') + new Date().toISOString().replace(/-|T|:/g, '').replace(/\..+/, '') + '.log';
-            this.writeStream = fs.createWriteStream(this.path, { flags: 'w'});
+            return new Promise((resolve) => {
+                this.path = this.basicPath.replace(/\.log/, '') + new Date().toISOString().replace(/-|T|:/g, '').replace(/\..+/, '') + '.log';
+                this.writeStream = fs.createWriteStream(this.path, { flags: 'w' });
+                this.writeStream.on('ready', () => {
+                    resolve();
+                })
+            })
         }
 
         const formatDate = (date) => {
@@ -21,28 +48,67 @@ class Logger {
             return s.substring(0, s.length - 5);
         }
 
-        if (!this.writeStream || this.writeStream.closed) {
-            openNewWriteStream();
-        } else if (this.maxLogSize) {
-            try {
-                if (fs.statSync(this.path).size > this.maxLogSize)
-                    openNewWriteStream();
-            }
-            catch (err) {
-                //it's OK if ENOENT 
-            }
+
+        const writeAsync = (data) => {
+            return new Promise((resolve) => {
+                this.writeStream.write(util.format('%s - %s\n', formatDate(data.timeStamp), data.message), () => {
+                    if (this.maxLogSize && fs.statSync(this.path).size >= this.maxLogSize) {
+                        this.writeStream.close(() => {
+                            resolve();
+                        });
+                    } else resolve();
+                });
+
+            })
         }
 
-        this.writeStream.write(util.format('%s - %s\n', formatDate(new Date()), data));
+        this.pending = true;
+
+        while (this.messages.length) {
+
+            const data = this.messages.shift();
+
+            if (!this.writeStream || this.writeStream.closed) {
+                await openNewWriteStream();
+            }
+
+            await writeAsync(data);
+
+        }
+
+        this.pending = false;
+
+        if (this.closeStreamAfterWriting) {
+            this.close();
+        }
+    }
+
+    log(data, messageType = messagesTypes.INFO) {
+
+        if (messageType >= this.mode)
+            this.messages.push({
+                message: data,
+                timeStamp: new Date()
+            });
 
     }
 
     close() {
-        if (this.writeStream && !this.writeStream.closed) {
-            this.writeStream.close();
+
+        if (this.pending || this.messages.length) {
+            this.closeStreamAfterWriting = true;
+            return;
+        }
+        else {
+
+            clearInterval(this.timer);
+
+            if (this.writeStream && !this.writeStream.closed) {
+                this.writeStream.close();
+            }
         }
     }
 
 }
 
-module.exports = Logger;
+module.exports = { Logger, messagesTypes, loggingModes };
