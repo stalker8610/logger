@@ -27,6 +27,10 @@ class Logger {
         }, 1000);
     }
 
+    setMode(mode){
+        this.mode = mode;
+    }
+
     async writeDataToFileAsync() {
 
         if (this.pending) return;
@@ -83,7 +87,11 @@ class Logger {
 
     log(data, messageType = messagesTypes.INFO) {
 
-        if (messageType >= this.mode)
+        const isMessageApproachesTheMode = (messageType) => {
+            return (messageType >= this.mode)
+        }
+                
+        if (isMessageApproachesTheMode(messageType))
             this.messages.push({
                 message: data,
                 timeStamp: new Date()
