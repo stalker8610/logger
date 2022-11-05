@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { EventEmitter } = require('stream');
 const util = require('util');
 
 const loggingModes = {
@@ -12,28 +13,62 @@ const messagesTypes = {
     ERROR: 2
 }
 
-class Logger {
+class Logger extends EventEmitter {
 
     constructor(basicPath, mode = loggingModes.STANDARD_MODE, maxLogSize = 0) {
+        super();
         this.basicPath = basicPath;
         this.path = basicPath;
         this.maxLogSize = maxLogSize;
         this.mode = mode;
         this.messages = [];
         this.pending = false;
-
         this.timer = setInterval(() => {
-            this.writeDataToFileAsync()
+            this._writeDataToFileAsync()
         }, 1000);
     }
 
-    setMode(mode){
+    //public methods
+    setMode(mode) {
         this.mode = mode;
     }
 
-    async writeDataToFileAsync() {
+    log(data, messageType = messagesTypes.INFO) {
 
-        if (this.pending) return;
+        const isMessageApproachesTheMode = (messageType) => {
+            return (messageType >= this.mode)
+        }
+
+        if (isMessageApproachesTheMode(messageType))
+            this.messages.push({
+                message: data,
+                timeStamp: new Date()
+            });
+
+    }
+
+    async close() {
+
+        if (this.pending) {
+            await this._waitForWritingDone();
+        }
+        else if (this.messages.length) {
+            await this._writeDataToFileAsync();
+        }
+
+        clearInterval(this.timer);
+
+        if (this.writeStream && !this.writeStream.closed) {
+            this.writeStream.close();
+        }
+
+    }
+
+    //private service methods
+    async _writeDataToFileAsync() {
+
+        this.pending = true;
+        clearInterval(this.timer);
 
         const openNewWriteStream = () => {
             return new Promise((resolve) => {
@@ -64,8 +99,6 @@ class Logger {
             })
         }
 
-        this.pending = true;
-
         while (this.messages.length) {
 
             const data = this.messages.shift();
@@ -78,41 +111,22 @@ class Logger {
 
         }
 
+        this.timer = setInterval(() => {
+            this._writeDataToFileAsync()
+        }, 1000);
+
         this.pending = false;
-
-        if (this.closeStreamAfterWriting) {
-            this.close();
-        }
-    }
-
-    log(data, messageType = messagesTypes.INFO) {
-
-        const isMessageApproachesTheMode = (messageType) => {
-            return (messageType >= this.mode)
-        }
-                
-        if (isMessageApproachesTheMode(messageType))
-            this.messages.push({
-                message: data,
-                timeStamp: new Date()
-            });
+        this.emit('writing done')
 
     }
 
-    close() {
+    async _waitForWritingDone() {
 
-        if (this.pending || this.messages.length) {
-            this.closeStreamAfterWriting = true;
-            return;
-        }
-        else {
-
-            clearInterval(this.timer);
-
-            if (this.writeStream && !this.writeStream.closed) {
-                this.writeStream.close();
-            }
-        }
+        return new Promise((resolve) => {
+            this.once('writing done', () => {
+                resolve();
+            })
+        })
     }
 
 }
