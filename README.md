@@ -1,5 +1,11 @@
 # Simple logger to file
 
+## How to install
+```
+npm i @stalker8610/logger@latest
+```
+
+
 ## Abilities:
 - Writes data in txt-file with name **TemplateYYYYMMDDHHmmss.txt**
 - Allows to set maximum file size (if after data was written file size becomes more than given maximum, creates new file with new timestamp)
