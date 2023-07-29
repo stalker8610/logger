@@ -74,7 +74,7 @@ export class Logger {
         return (messageType >= this.mode)
     }
 
-    private close() {
+    close() {
         if (this.writeStream && !this.writeStream.closed) {
             this.writeStream.close();
         }

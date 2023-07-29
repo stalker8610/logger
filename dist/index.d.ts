@@ -19,7 +19,7 @@ export declare class Logger {
     warn(message: string, sync?: boolean): void;
     error(message: string, sync?: boolean): void;
     private isMessageApproachesTheMode;
-    private close;
+    close(): void;
     private writeMessageToFile;
     private writeMessageToFileSync;
 }
