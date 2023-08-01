@@ -35,14 +35,15 @@ export class Logger {
     }
     log(text, type = MessagesTypes.INFO, sync = false) {
         if (this.isMessageApproachesTheMode(type)) {
-            if (this.verbose) {
-                console.log(`${type} - ${text}`);
-            }
-            this.writeMessageToFile({
+            const newMessage = {
                 text,
                 type,
                 timeStamp: applyTimeZone(new Date())
-            }, sync);
+            };
+            if (this.verbose) {
+                console.log(formatMessage(newMessage));
+            }
+            this.writeMessageToFile(newMessage, sync);
         }
     }
     info(message, sync = false) {
