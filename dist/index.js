@@ -74,6 +74,13 @@ export class Logger {
         }
     }
     writeMessageToFileSync(message) {
+        const writeAndCheckLength = (text) => {
+            this.writeStream.write(text + '\n', () => {
+                if (this.maxLogSize && fs.statSync(this.writeStream.path).size >= this.maxLogSize) {
+                    this.writeStream.close();
+                }
+            });
+        };
         if (!this.writeStream || this.writeStream.closed) {
             const dirPath = this.basicPath.substring(0, this.basicPath.lastIndexOf('\\'));
             const formattedTimestamp = applyTimeZone(new Date()).toISOString().replace(/-|T|:/g, '').replace(/\..+/, '');
@@ -86,19 +93,11 @@ export class Logger {
         const formattedMessage = formatMessage(message);
         if (this.writeStream.pending) {
             this.writeStream.on('ready', () => {
-                this.writeStream.write(formattedMessage, () => {
-                    if (this.maxLogSize && fs.statSync(this.writeStream.path).size >= this.maxLogSize) {
-                        this.writeStream.close();
-                    }
-                });
+                writeAndCheckLength(formattedMessage);
             });
         }
         else {
-            this.writeStream.write(formattedMessage, () => {
-                if (this.maxLogSize && fs.statSync(this.writeStream.path).size >= this.maxLogSize) {
-                    this.writeStream.close();
-                }
-            });
+            writeAndCheckLength(formattedMessage);
         }
     }
 }
@@ -113,5 +112,5 @@ function formatDate(date) {
 function formatMessage(message) {
     const formattedDate = formatDate(message.timeStamp);
     const formattedMessageType = MessagesTypes[message.type].padEnd(messagesTypesMaxLength, ' ');
-    return format('%s - %s - %s\n', formattedDate, formattedMessageType, message.text);
+    return format('%s - %s - %s', formattedDate, formattedMessageType, message.text);
 }
