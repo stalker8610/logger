@@ -18,10 +18,11 @@ function maxKeyLengthOf(o) {
 const messagesTypesMaxLength = maxKeyLengthOf(MessagesTypes);
 const timezoneOffsetSeconds = new Date().getTimezoneOffset() * 60;
 export class Logger {
-    constructor(basicPath, mode = LoggingModes.STANDARD_MODE, maxLogSize = 0, autoClose = true) {
+    constructor(basicPath, mode = LoggingModes.STANDARD_MODE, maxLogSize = 0, verbose = false, autoClose = true) {
         this.basicPath = basicPath;
         this.mode = mode;
         this.maxLogSize = maxLogSize;
+        this.verbose = verbose;
         this.writeStream = null;
         if (autoClose) {
             process.on('exit', () => {
@@ -34,6 +35,9 @@ export class Logger {
     }
     log(text, type = MessagesTypes.INFO, sync = false) {
         if (this.isMessageApproachesTheMode(type)) {
+            if (this.verbose) {
+                console.log(`${type} - ${text}`);
+            }
             this.writeMessageToFile({
                 text,
                 type,

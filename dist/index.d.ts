@@ -11,8 +11,9 @@ export declare class Logger {
     private readonly basicPath;
     private mode;
     private readonly maxLogSize;
+    private readonly verbose;
     private writeStream;
-    constructor(basicPath: string, mode?: LoggingModes, maxLogSize?: number, autoClose?: boolean);
+    constructor(basicPath: string, mode?: LoggingModes, maxLogSize?: number, verbose?: boolean, autoClose?: boolean);
     setMode(mode: LoggingModes): void;
     log(text: string, type?: MessagesTypes, sync?: boolean): void;
     info(message: string, sync?: boolean): void;

@@ -34,6 +34,7 @@ export class Logger {
     constructor(private readonly basicPath: string,
         private mode = LoggingModes.STANDARD_MODE,
         private readonly maxLogSize = 0,
+        private readonly verbose = false,
         autoClose = true) {
 
         if (autoClose) {
@@ -50,6 +51,9 @@ export class Logger {
 
     log(text: string, type: MessagesTypes = MessagesTypes.INFO, sync = false) {
         if (this.isMessageApproachesTheMode(type)) {
+            if (this.verbose) {
+                console.log(`${type} - ${text}`);
+            }
             this.writeMessageToFile({
                 text,
                 type,
