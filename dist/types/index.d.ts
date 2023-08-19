@@ -13,14 +13,14 @@ export declare class Logger {
     private readonly maxLogSize;
     private readonly verbose;
     private writeStream;
-    constructor(basicPath: string, mode?: LoggingModes, maxLogSize?: number, verbose?: boolean, autoClose?: boolean);
+    constructor(basicPath: string, mode?: LoggingModes, maxLogSize?: number, verbose?: boolean);
     setMode(mode: LoggingModes): void;
     log(text: string, type?: MessagesTypes, sync?: boolean): void;
     info(message: string, sync?: boolean): void;
     warn(message: string, sync?: boolean): void;
     error(message: string, sync?: boolean): void;
-    private isMessageApproachesTheMode;
     close(): void;
+    private isMessageApproachesTheMode;
     private writeMessageToFile;
     private writeMessageToFileSync;
 }

@@ -34,15 +34,7 @@ export class Logger {
     constructor(private readonly basicPath: string,
         private mode = LoggingModes.STANDARD_MODE,
         private readonly maxLogSize = 0,
-        private readonly verbose = false,
-        autoClose = true) {
-
-        if (autoClose) {
-            process.on('exit', () => {
-                this.close();
-            });
-        }
-
+        private readonly verbose = false) {
     }
 
     setMode(mode: LoggingModes) {
@@ -75,14 +67,14 @@ export class Logger {
         this.log(message, MessagesTypes.ERROR, sync);
     }
 
-    private isMessageApproachesTheMode(messageType: MessagesTypes) {
-        return (messageType >= this.mode)
-    }
-
     close() {
         if (this.writeStream && !this.writeStream.closed) {
             this.writeStream.close();
         }
+    }
+
+    private isMessageApproachesTheMode(messageType: MessagesTypes) {
+        return (messageType >= this.mode)
     }
 
     private writeMessageToFile(message: Message, sync: boolean) {
@@ -98,7 +90,7 @@ export class Logger {
     private writeMessageToFileSync(message: Message) {
 
         const writeAndCheckLength = (text: string) => {
-            this.writeStream.write(text+'\n', () => {
+            this.writeStream.write(text + '\n', () => {
                 if (this.maxLogSize && fs.statSync(this.writeStream.path).size >= this.maxLogSize) {
                     this.writeStream.close();
                 }
@@ -112,13 +104,13 @@ export class Logger {
             if (!fs.existsSync(dirPath)) {
                 fs.mkdirSync(dirPath, { recursive: true });
             }
-            this.writeStream = fs.createWriteStream(filePath, { flags: 'w' });
+            this.writeStream = fs.createWriteStream(filePath, { flags: 'w', autoClose: false });
         }
 
         const formattedMessage = formatMessage(message);
 
         if (this.writeStream.pending) {
-            this.writeStream.on('ready', () => {
+            this.writeStream.once('ready', () => {
                 writeAndCheckLength(formattedMessage);
             })
         } else {

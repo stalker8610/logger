@@ -21,17 +21,12 @@ function maxKeyLengthOf(o) {
 const messagesTypesMaxLength = maxKeyLengthOf(MessagesTypes);
 const timezoneOffsetSeconds = new Date().getTimezoneOffset() * 60;
 class Logger {
-    constructor(basicPath, mode = LoggingModes.STANDARD_MODE, maxLogSize = 0, verbose = false, autoClose = true) {
+    constructor(basicPath, mode = LoggingModes.STANDARD_MODE, maxLogSize = 0, verbose = false) {
         this.basicPath = basicPath;
         this.mode = mode;
         this.maxLogSize = maxLogSize;
         this.verbose = verbose;
         this.writeStream = null;
-        if (autoClose) {
-            process.on('exit', () => {
-                this.close();
-            });
-        }
     }
     setMode(mode) {
         this.mode = mode;
@@ -58,13 +53,13 @@ class Logger {
     error(message, sync = false) {
         this.log(message, MessagesTypes.ERROR, sync);
     }
-    isMessageApproachesTheMode(messageType) {
-        return (messageType >= this.mode);
-    }
     close() {
         if (this.writeStream && !this.writeStream.closed) {
             this.writeStream.close();
         }
+    }
+    isMessageApproachesTheMode(messageType) {
+        return (messageType >= this.mode);
     }
     writeMessageToFile(message, sync) {
         if (sync) {
@@ -91,11 +86,11 @@ class Logger {
             if (!fs.existsSync(dirPath)) {
                 fs.mkdirSync(dirPath, { recursive: true });
             }
-            this.writeStream = fs.createWriteStream(filePath, { flags: 'w' });
+            this.writeStream = fs.createWriteStream(filePath, { flags: 'w', autoClose: false });
         }
         const formattedMessage = formatMessage(message);
         if (this.writeStream.pending) {
-            this.writeStream.on('ready', () => {
+            this.writeStream.once('ready', () => {
                 writeAndCheckLength(formattedMessage);
             });
         }

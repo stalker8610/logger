@@ -1,6 +1,6 @@
 {
     "name": "@stalker8610/logger",
-    "version": "2.2.0",
+    "version": "3.0.0",
     "description": "simple logger into txt-file",
     "type": "module",
     "scripts": {
