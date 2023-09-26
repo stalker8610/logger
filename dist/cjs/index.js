@@ -1,27 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Logger = exports.LoggingModes = void 0;
+exports.Logger = void 0;
 const fs = require("fs");
 const util_1 = require("util");
-var LoggingModes;
-(function (LoggingModes) {
-    LoggingModes[LoggingModes["DEBUG_MODE"] = 0] = "DEBUG_MODE";
-    LoggingModes[LoggingModes["STANDARD_MODE"] = 1] = "STANDARD_MODE";
-})(LoggingModes || (exports.LoggingModes = LoggingModes = {}));
-var MessagesTypes;
-(function (MessagesTypes) {
-    MessagesTypes[MessagesTypes["INFO"] = 0] = "INFO";
-    MessagesTypes[MessagesTypes["WARN"] = 1] = "WARN";
-    MessagesTypes[MessagesTypes["ERROR"] = 2] = "ERROR";
-})(MessagesTypes || (MessagesTypes = {}));
+const types_js_1 = require("./types.js");
 function maxKeyLengthOf(o) {
     let keys = Object.keys(o);
     return keys.reduce((maxLength, cur) => cur.length > maxLength ? cur.length : maxLength, 0);
 }
-const messagesTypesMaxLength = maxKeyLengthOf(MessagesTypes);
+const messagesTypesMaxLength = maxKeyLengthOf(types_js_1.MessagesTypes);
 const timezoneOffsetSeconds = new Date().getTimezoneOffset() * 60;
 class Logger {
-    constructor(basicPath, mode = LoggingModes.STANDARD_MODE, maxLogSize = 0, verbose = false) {
+    constructor(basicPath, mode = types_js_1.LoggingModes.STANDARD_MODE, maxLogSize = 0, verbose = false) {
         this.basicPath = basicPath;
         this.mode = mode;
         this.maxLogSize = maxLogSize;
@@ -31,7 +21,7 @@ class Logger {
     setMode(mode) {
         this.mode = mode;
     }
-    log(text, type = MessagesTypes.INFO, sync = false) {
+    log(text, type = types_js_1.MessagesTypes.INFO, sync = false) {
         if (this.isMessageApproachesTheMode(type)) {
             const newMessage = {
                 text,
@@ -45,13 +35,13 @@ class Logger {
         }
     }
     info(message, sync = false) {
-        this.log(message, MessagesTypes.INFO, sync);
+        this.log(message, types_js_1.MessagesTypes.INFO, sync);
     }
     warn(message, sync = false) {
-        this.log(message, MessagesTypes.WARN, sync);
+        this.log(message, types_js_1.MessagesTypes.WARN, sync);
     }
     error(message, sync = false) {
-        this.log(message, MessagesTypes.ERROR, sync);
+        this.log(message, types_js_1.MessagesTypes.ERROR, sync);
     }
     close() {
         if (this.writeStream && !this.writeStream.closed) {
@@ -110,6 +100,6 @@ function formatDate(date) {
 }
 function formatMessage(message) {
     const formattedDate = formatDate(message.timeStamp);
-    const formattedMessageType = MessagesTypes[message.type].padEnd(messagesTypesMaxLength, ' ');
+    const formattedMessageType = types_js_1.MessagesTypes[message.type].padEnd(messagesTypesMaxLength, ' ');
     return (0, util_1.format)('%s - %s - %s', formattedDate, formattedMessageType, message.text);
 }

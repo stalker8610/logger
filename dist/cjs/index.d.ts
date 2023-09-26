@@ -1,12 +1,4 @@
-export declare enum LoggingModes {
-    DEBUG_MODE = 0,
-    STANDARD_MODE = 1
-}
-declare enum MessagesTypes {
-    INFO = 0,
-    WARN = 1,
-    ERROR = 2
-}
+import { LoggingModes, MessagesTypes } from './types.js';
 export declare class Logger {
     private readonly basicPath;
     private mode;
@@ -24,4 +16,3 @@ export declare class Logger {
     private writeMessageToFile;
     private writeMessageToFileSync;
 }
-export {};

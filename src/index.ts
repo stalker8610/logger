@@ -1,22 +1,7 @@
 import * as fs from 'fs';
 import { format } from 'util';
+import { LoggingModes, MessagesTypes, Message} from './types.js';
 
-export enum LoggingModes {
-    DEBUG_MODE = 0,
-    STANDARD_MODE = 1
-}
-
-enum MessagesTypes {
-    INFO = 0,
-    WARN = 1,
-    ERROR = 2
-}
-
-type Message = {
-    text: string,
-    type: MessagesTypes,
-    timeStamp: Date
-}
 
 function maxKeyLengthOf(o: Object): number {
     let keys = Object.keys(o);
